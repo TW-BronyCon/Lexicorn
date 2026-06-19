@@ -1,0 +1,338 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
+
+:root {
+  /* MD3 Color Palette - TW-BronyCon (TWBC) Scheme */
+  --md-sys-color-background: #120b18; /* TWBC background */
+  --md-sys-color-on-background: #e9e0eb;
+  
+  --md-sys-color-primary: #a85bc4; /* TWBC Violet Accent */
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: #4c1a59;
+  --md-sys-color-on-primary-container: #f9d8ff;
+  
+  --md-sys-color-secondary: #745679;
+  --md-sys-color-on-secondary: #ffffff;
+  --md-sys-color-secondary-container: #2b1f36; /* Card border / Surface Variant tint */
+  --md-sys-color-on-secondary-container: #f0dbf2;
+  
+  --md-sys-color-surface: #191022; /* Card Surface */
+  --md-sys-color-on-surface: #e9e0eb;
+  
+  --md-sys-color-surface-variant: #281c33;
+  --md-sys-color-on-surface-variant: #d3c2d6;
+  
+  --md-sys-color-outline: #9c89a0;
+  --md-sys-color-outline-variant: #4f3f54;
+  
+  --md-sys-color-error: #ffb4ab;
+  --md-sys-color-on-error: #690005;
+  
+  --md-sys-color-success: #34d399; /* Custom green */
+  --md-sys-color-on-success: #003924;
+  --md-sys-color-success-container: #005236;
+  --md-sys-color-on-success-container: #6effc6;
+
+  /* Typography */
+  --font-sans: 'Inter', 'Noto Sans TC', system-ui, -apple-system, sans-serif;
+  
+  /* Shapes */
+  --md-shape-corner-small: 8px;
+  --md-shape-corner-medium: 12px;
+  --md-shape-corner-large: 16px;
+  --md-shape-corner-full: 9999px;
+  
+  /* Transitions */
+  --transition-fast: 0.15s cubic-bezier(0.2, 0, 0, 1);
+  --transition-normal: 0.3s cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* Global resets */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--md-sys-color-background);
+  color: var(--md-sys-color-on-background);
+  font-family: var(--font-sans);
+  line-height: 1.6;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--md-sys-color-background);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--md-sys-color-outline-variant);
+  border-radius: var(--md-shape-corner-full);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--md-sys-color-outline);
+}
+
+/* Layout Containers */
+.app-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
+  margin-bottom: 2.5rem;
+}
+
+.app-logo {
+  font-weight: 700;
+  font-size: 1.6rem;
+  color: var(--md-sys-color-primary);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+/* Navigation Link */
+.nav-link {
+  color: var(--md-sys-color-on-surface-variant);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.95rem;
+  padding: 0.5rem 1rem;
+  border-radius: var(--md-shape-corner-full);
+  transition: var(--transition-fast);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid transparent;
+}
+
+.nav-link:hover {
+  color: var(--md-sys-color-on-surface);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.nav-link.active {
+  color: var(--md-sys-color-on-primary-container);
+  background: var(--md-sys-color-primary-container);
+}
+
+/* Typography */
+h1, h2, h3, h4 {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: 1rem;
+  color: var(--md-sys-color-on-background);
+}
+
+p {
+  color: var(--md-sys-color-on-surface-variant);
+  margin-bottom: 1.5rem;
+}
+
+/* MD3 Outlined Cards */
+.glass-card {
+  background: var(--md-sys-color-surface);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-shape-corner-large);
+  padding: 2.5rem;
+  box-shadow: none; /* MD3 is flatter, outlines emphasize boundaries */
+  transition: var(--transition-normal);
+}
+
+.glass-card:hover {
+  border-color: var(--md-sys-color-outline);
+}
+
+/* MD3 Buttons (Pills) */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  font-weight: 500;
+  border-radius: var(--md-shape-corner-full); /* MD3 pill buttons */
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  text-decoration: none;
+  gap: 0.5rem;
+}
+
+/* Primary Filled Button */
+.btn-primary {
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+}
+
+.btn-primary:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.btn-primary:disabled {
+  background: var(--md-sys-color-outline-variant);
+  color: var(--md-sys-color-outline);
+  cursor: not-allowed;
+  filter: none;
+  box-shadow: none;
+  opacity: 0.5;
+}
+
+/* Secondary Outlined Button */
+.btn-secondary {
+  background: transparent;
+  color: var(--md-sys-color-primary);
+  border: 1px solid var(--md-sys-color-outline);
+}
+
+.btn-secondary:hover {
+  background: rgba(168, 91, 196, 0.05);
+  border-color: var(--md-sys-color-primary);
+}
+
+/* Danger Button */
+.btn-danger {
+  background: transparent;
+  color: var(--md-sys-color-error);
+  border: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.btn-danger:hover {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: var(--md-sys-color-error);
+}
+
+/* Inputs and Forms */
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-label {
+  display: block;
+  font-weight: 500;
+  color: var(--md-sys-color-on-surface);
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+/* Outlined MD3 Inputs */
+.form-input, .form-textarea, .form-select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  border: 1px solid var(--md-sys-color-outline);
+  border-radius: var(--md-shape-corner-small);
+  color: var(--md-sys-color-on-background);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  transition: var(--transition-fast);
+}
+
+.form-input:focus, .form-textarea:focus, .form-select:focus {
+  outline: none;
+  border-color: var(--md-sys-color-primary);
+  border-width: 2px;
+  padding: 0.72rem 0.97rem; /* Compenses for 2px border width */
+}
+
+.form-textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+/* Progress bar (Flat solid) */
+.progress-container {
+  width: 100%;
+  background: var(--md-sys-color-surface-variant);
+  border-radius: var(--md-shape-corner-full);
+  height: 8px;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+
+.progress-bar {
+  background: var(--md-sys-color-primary);
+  height: 100%;
+  border-radius: var(--md-shape-corner-full);
+  transition: width 0.4s cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.6rem;
+  border-radius: var(--md-shape-corner-small);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.badge-primary {
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+}
+
+.badge-success {
+  background: var(--md-sys-color-success-container);
+  color: var(--md-sys-color-on-success-container);
+}
+
+.badge-warning {
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s cubic-bezier(0.2, 0, 0, 1) forwards;
+}
+
+/* Typographic underline styling for final story */
+.story-output-text {
+  font-size: 1.25rem;
+  line-height: 1.8;
+  color: var(--md-sys-color-on-background);
+  text-align: justify;
+}
+
+.story-output-text u {
+  text-underline-offset: 4px;
+  text-decoration-thickness: 3px;
+  text-decoration-color: var(--md-sys-color-primary);
+  color: var(--md-sys-color-primary);
+  font-weight: 600;
+  padding: 0 2px;
+  text-decoration-line: underline;
+  text-decoration-style: solid;
+}

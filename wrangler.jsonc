@@ -1,0 +1,12 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "twbc-storyteller",
+  "compatibility_date": "2026-06-19",
+  "pages_build_output_dir": ".output/public",
+  "kv_namespaces": [
+    {
+      "binding": "STORYTELLER_KV",
+      "id": "STORYTELLER_KV_PLACEHOLDER"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <rect width="512" height="512" rx="128" fill="#120b18" />
+  <rect x="16" y="16" width="480" height="480" rx="112" fill="none" stroke="#a85bc4" stroke-width="24" />
+  <!-- Stylized Book Pages -->
+  <path d="M128 352c48 0 96-16 128-48 32 32 80 48 128 48V160c-48 0-96-16-128-48-32 32-80 48-128 48z" fill="#ffffff" />
+  <path d="M256 128v208" stroke="#120b18" stroke-width="16" stroke-linecap="round" />
+  <!-- Sparkle Star Rising -->
+  <path d="M256 160c0 16 12 28 28 28-16 0-28 12-28 28 0-16-12-28-28-28 16 0 28-12 28-28z" fill="#a85bc4" />
+</svg>

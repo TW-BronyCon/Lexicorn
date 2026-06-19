@@ -7,6 +7,9 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'Session ID is required' })
   }
 
+  const query = getQuery(event)
+  const isViewerMode = query.view === 'viewer'
+
   const kv = getKV(event)
   const session = await kv.get(`session:${id.toUpperCase()}`)
   if (!session) {
@@ -16,20 +19,26 @@ export default defineEventHandler(async (event) => {
   const hostTokenHeader = getHeader(event, 'x-host-token')
   const isHost = hostTokenHeader === session.hostToken
 
-  if (isHost) {
+  const queue = session.queue || []
+  const blanks = session.blanks || []
+  const answers = session.answers || {}
+
+  if (isHost && !isViewerMode) {
     // Host gets full access
     return {
       isHost: true,
       id: session.id,
       title: session.title,
       status: session.status,
-      blanks: session.blanks,
-      queue: session.queue,
-      currentQueueIndex: session.currentQueueIndex,
-      answers: session.answers,
-      rawText: session.rawText,
+      blanks: blanks,
+      queue: queue,
+      currentQueueIndex: session.currentQueueIndex || 0,
+      answers: answers,
+      rawText: session.rawText || '',
       // Provide a pre-rendered story preview for convenience if in reveal mode
-      finalStory: session.status === 'reveal' ? renderStory(session.rawText, session.answers) : null
+      finalStory: session.status === 'reveal' ? renderStory(session.rawText || '', answers) : null,
+      finalStoryPreview: renderStory(session.rawText || '', answers),
+      currentCandidate: session.currentCandidate || ''
     }
   }
 
@@ -37,25 +46,30 @@ export default defineEventHandler(async (event) => {
   if (session.status === 'input') {
     // Count how many blanks have been filled in the queue
     let filledCount = 0
-    session.queue.forEach((blankId: string) => {
-      const blank = session.blanks.find((b: any) => b.id === blankId)
-      if (blank && session.answers[blank.canonicalName] !== undefined) {
-        filledCount++
+    queue.forEach((blankId: string) => {
+      const blank = blanks.find((b: any) => b.id === blankId)
+      if (blank) {
+        const ans = answers[blank.canonicalName]
+        if (ans !== undefined && ans !== null && ans.trim() !== '') {
+          filledCount++
+        }
       }
     })
 
     // Map blanks in queue order, masking details for future blanks
-    const viewerBlanks = session.queue.map((blankId: string, queueIndex: number) => {
-      const blank = session.blanks.find((b: any) => b.id === blankId)
-      const isRevealed = queueIndex <= session.currentQueueIndex
+    const viewerBlanks = queue.map((blankId: string, queueIndex: number) => {
+      const blank = blanks.find((b: any) => b.id === blankId)
+      const isRevealed = queueIndex <= (session.currentQueueIndex || 0)
 
       if (blank && isRevealed) {
+        const ans = answers[blank.canonicalName]
+        const isAnswered = ans !== undefined && ans !== null && ans.trim() !== ''
         return {
           id: blank.id,
           name: blank.name,
           category: blank.category,
           remarks: blank.remarks,
-          isAnswered: session.answers[blank.canonicalName] !== undefined,
+          isAnswered,
           isRevealed: true
         }
       } else {
@@ -71,23 +85,25 @@ export default defineEventHandler(async (event) => {
     })
 
     return {
-      isHost: false,
+      isHost: isHost,
       id: session.id,
       title: session.title,
       status: session.status,
-      totalBlanks: session.queue.length,
+      totalBlanks: queue.length,
       filledBlanks: filledCount,
-      currentQueueIndex: session.currentQueueIndex,
-      blanks: viewerBlanks
+      currentQueueIndex: session.currentQueueIndex || 0,
+      blanks: viewerBlanks,
+      finalStoryPreview: isHost ? renderStory(session.rawText || '', answers) : null,
+      currentCandidate: session.currentCandidate || ''
     }
   } else {
     // Reveal status: viewers see the final rendered story
     return {
-      isHost: false,
+      isHost: isHost,
       id: session.id,
       title: session.title,
       status: session.status,
-      finalStory: renderStory(session.rawText, session.answers)
+      finalStory: renderStory(session.rawText || '', answers)
     }
   }
 })

@@ -1,14 +1,5 @@
 import { getKV } from '../../../utils/kv'
 
-function shuffleArray<T>(array: T[]): T[] {
-  const arr = [...array]
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]]
-  }
-  return arr
-}
-
 export default defineEventHandler(async (event) => {
   const id = getRouterParam(event, 'id')
   if (!id) {
@@ -31,13 +22,14 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 403, message: 'Unauthorized host token' })
   }
 
-  // Reshuffle the blanks
-  const shuffledQueue = shuffleArray(session.blanks.map((b: any) => b.id))
+  // Restore the queue to initial FIFO order
+  const orderedQueue = session.blanks.map((b: any) => b.id)
 
   session.answers = {}
   session.currentQueueIndex = 0
   session.status = 'input'
-  session.queue = shuffledQueue
+  session.queue = orderedQueue
+  session.currentCandidate = ''
   session.updatedAt = new Date().toISOString()
 
   await kv.put(sessionKey, session)

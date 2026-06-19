@@ -114,6 +114,24 @@
           </div>
         </div>
 
+        <!-- Live Story Preview (Host Panel) -->
+        <div v-if="session.status === 'input'" class="glass-card host-preview-card">
+          <div class="host-preview-header" @click="showLivePreview = !showLivePreview">
+            <div class="header-left">
+              <span class="host-badge font-bold">LIVE PREVIEW</span>
+              <h3>Live Story Preview</h3>
+            </div>
+            <button class="btn btn-secondary btn-sm">
+              {{ showLivePreview ? 'Hide Preview' : 'Show Preview' }}
+            </button>
+          </div>
+          
+          <div v-if="showLivePreview" class="host-preview-content animate-fade-in">
+            <p class="preview-help-text">This preview updates in real-time as you fill in blanks. Viewers cannot see this unless you reveal the story.</p>
+            <div class="preview-story-box" v-html="finalStoryPreview || 'No blanks filled yet.'"></div>
+          </div>
+        </div>
+
         <!-- Gameplay Panel: Reveal Mode -->
         <div v-else class="glass-card story-reveal-card">
           <div class="congrats-banner">
@@ -126,12 +144,12 @@
           </div>
 
           <div class="reveal-actions">
-            <button @click="resetSession" class="btn btn-secondary">
+            <button @click="replaySession" class="btn btn-secondary">
               Reset & Play Again
             </button>
-            <NuxtLink to="/host" class="btn btn-secondary">
+            <button @click="exitSession" class="btn btn-secondary">
               Exit to Dashboard
-            </NuxtLink>
+            </button>
           </div>
         </div>
       </div>
@@ -220,11 +238,32 @@ const filledUniqueCount = computed(() => {
   return Object.keys(session.value.answers || {}).length
 })
 
+const showLivePreview = ref(false)
+
+const renderPreview = (rawText, answers) => {
+  if (!rawText) return ''
+  const regex = /【([^】]+)】|\[([^\]]+)\]/g
+  return rawText.replace(regex, (match, p1, p2) => {
+    const name = (p1 || p2 || '').trim()
+    const canonicalName = name.replace(/\s*\((Reference|Ref|reference|ref)(\s+\d+)?\)$/i, '').trim()
+    const answer = (answers || {})[canonicalName]
+    if (answer !== undefined && answer !== null && answer.trim() !== '') {
+      return `<u>${answer}</u>`
+    }
+    return match
+  })
+}
+
+const finalStoryPreview = computed(() => {
+  if (!session.value) return ''
+  return renderPreview(session.value.rawText, session.value.answers)
+})
+
 const isReadyToReveal = computed(() => {
   if (!session.value) return false
   // Check if every canonical name in blanks has an answer
   return session.value.blanks.every(b => {
-    const ans = session.value.answers[b.canonicalName]
+    const ans = (session.value.answers || {})[b.canonicalName]
     return ans !== undefined && ans !== null && ans.trim() !== ''
   })
 })
@@ -234,7 +273,7 @@ const isQueueItemAnswered = (blankId) => {
   if (!session.value) return false
   const blank = session.value.blanks.find(b => b.id === blankId)
   if (!blank) return false
-  const ans = session.value.answers[blank.canonicalName]
+  const ans = (session.value.answers || {})[blank.canonicalName]
   return ans !== undefined && ans !== null && ans.trim() !== ''
 }
 
@@ -244,10 +283,53 @@ const getBlankDetails = (blankId) => {
   return session.value.blanks.find(b => b.id === blankId) || { name: '', category: '' }
 }
 
-const updateInputValue = () => {
+const lastSyncedCandidate = ref('')
+let debounceTimeout = null
+
+const clearCandidateDebounce = () => {
+  if (debounceTimeout) {
+    clearTimeout(debounceTimeout)
+    debounceTimeout = null
+  }
+}
+
+watch(inputValue, (newVal) => {
+  const trimmed = newVal.trim()
+  if (trimmed === lastSyncedCandidate.value) return
+  
+  clearCandidateDebounce()
+  
+  debounceTimeout = setTimeout(async () => {
+    if (!session.value) return
+    lastSyncedCandidate.value = trimmed
+    try {
+      await $fetch(`/api/sessions/${session.value.id}/update`, {
+        method: 'POST',
+        headers: { 'x-host-token': hostToken.value },
+        body: {
+          currentCandidate: trimmed
+        }
+      })
+    } catch (err) {
+      console.error('Failed to update candidate:', err)
+    }
+  }, 300)
+})
+
+const updateInputValue = (isForward = false) => {
   if (!activeBlank.value) return
-  const prevAnswer = session.value.answers[activeBlank.value.canonicalName]
+  const canonicalName = activeBlank.value.canonicalName
+  const prevAnswer = (session.value.answers || {})[canonicalName]
+  
+  lastSyncedCandidate.value = prevAnswer || ''
   inputValue.value = prevAnswer || ''
+
+  if (isForward && isActiveBlankLinked.value && prevAnswer) {
+    nextTick(() => {
+      saveAndNext()
+    })
+    return
+  }
   
   // Refocus input field on next tick
   nextTick(() => {
@@ -257,9 +339,11 @@ const updateInputValue = () => {
   })
 }
 
-// Watch queue index to handle prefill
-watch(() => session.value?.currentQueueIndex, () => {
-  updateInputValue()
+// Watch queue index to handle prefill and auto-advance
+watch(() => session.value?.currentQueueIndex, (newVal, oldVal) => {
+  if (newVal === undefined) return
+  const isForward = oldVal !== undefined && newVal > oldVal
+  updateInputValue(isForward)
 }, { immediate: true })
 
 // Actions
@@ -274,6 +358,7 @@ const copyViewerLink = () => {
 }
 
 const saveAndNext = async () => {
+  clearCandidateDebounce()
   if (!activeBlank.value) return
   const currentVal = inputValue.value.trim()
   if (!currentVal) return
@@ -300,13 +385,13 @@ const saveAndNext = async () => {
     
     session.value.answers = res.session.answers
     session.value.currentQueueIndex = res.session.currentQueueIndex
-    updateInputValue()
   } catch (err) {
     alert('Failed to save answer: ' + (err.data?.message || err.message))
   }
 }
 
 const goToPrevious = async () => {
+  clearCandidateDebounce()
   if (session.value.currentQueueIndex === 0) return
   const prevIndex = session.value.currentQueueIndex - 1
 
@@ -320,13 +405,13 @@ const goToPrevious = async () => {
     })
     
     session.value.currentQueueIndex = res.session.currentQueueIndex
-    updateInputValue()
   } catch (err) {
     alert('Failed to navigate: ' + (err.data?.message || err.message))
   }
 }
 
 const jumpToQueueIndex = async (index) => {
+  clearCandidateDebounce()
   if (session.value.status !== 'input') return
   try {
     const res = await $fetch(`/api/sessions/${session.value.id}/update`, {
@@ -337,7 +422,6 @@ const jumpToQueueIndex = async (index) => {
       }
     })
     session.value.currentQueueIndex = res.session.currentQueueIndex
-    updateInputValue()
   } catch (err) {
     alert('Failed to jump to blank: ' + (err.data?.message || err.message))
   }
@@ -360,10 +444,11 @@ const revealStory = async () => {
 }
 
 const resetSession = async () => {
-  if (!confirm('Are you sure you want to reset this session? All answered words will be cleared and reshuffled.')) {
+  if (!confirm('Are you sure you want to reset this session? All answered words will be cleared.')) {
     return
   }
   
+  clearCandidateDebounce()
   try {
     const res = await $fetch(`/api/sessions/${session.value.id}/reset`, {
       method: 'POST',
@@ -371,9 +456,59 @@ const resetSession = async () => {
     })
     
     session.value = res.session
-    updateInputValue()
+    updateInputValue(false)
   } catch (err) {
     alert('Failed to reset session: ' + (err.data?.message || err.message))
+  }
+}
+
+const exitSession = async () => {
+  if (!confirm('Are you sure you want to end this game and exit? The session code will be deactivated.')) {
+    return
+  }
+  clearCandidateDebounce()
+  try {
+    await $fetch(`/api/sessions/${session.value.id}`, {
+      method: 'DELETE',
+      headers: { 'x-host-token': hostToken.value }
+    })
+    if (process.client) {
+      localStorage.removeItem(`host_token_${session.value.id}`)
+    }
+  } catch (err) {
+    console.error('Failed to terminate session:', err)
+  }
+  router.push('/host')
+}
+
+const replaySession = async () => {
+  if (!confirm('Are you sure you want to start a new session? The current session will be ended.')) {
+    return
+  }
+  clearCandidateDebounce()
+  const templateId = session.value.templateId
+  try {
+    await $fetch(`/api/sessions/${session.value.id}`, {
+      method: 'DELETE',
+      headers: { 'x-host-token': hostToken.value }
+    })
+    if (process.client) {
+      localStorage.removeItem(`host_token_${session.value.id}`)
+    }
+
+    const data = await $fetch('/api/sessions', {
+      method: 'POST',
+      body: { templateId }
+    })
+    
+    if (process.client) {
+      localStorage.setItem(`host_token_${data.sessionId}`, data.hostToken)
+    }
+    
+    router.push(`/host/session/${data.sessionId}`)
+  } catch (err) {
+    alert('Failed to start new session: ' + (err.data?.message || err.message))
+    router.push('/host')
   }
 }
 
@@ -395,7 +530,7 @@ onMounted(async () => {
       headers: { 'x-host-token': hostToken.value }
     })
     session.value = data
-    updateInputValue()
+    updateInputValue(false)
   } catch (err) {
     authError.value = err.data?.message || err.message || 'Failed to authenticate host access.'
   } finally {
@@ -753,5 +888,66 @@ onMounted(async () => {
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+/* Live Story Preview (Host Panel) styling */
+.host-preview-card {
+  padding: 1.75rem;
+  border: 1px dashed rgba(245, 158, 11, 0.4);
+  background: rgba(245, 158, 11, 0.02);
+  border-radius: var(--radius-md);
+  margin-top: 1.5rem;
+}
+
+.host-preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+
+.host-preview-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: #fff;
+  font-weight: 700;
+}
+
+.host-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 800;
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  color: #fbbf24;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  margin-bottom: 0.25rem;
+}
+
+.preview-help-text {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.preview-story-box {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  padding: 1.5rem;
+  font-size: 1.2rem;
+  line-height: 1.6;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.preview-story-box u {
+  text-underline-offset: 4px;
+  text-decoration-thickness: 2px;
+  padding: 0 4px;
+  background: rgba(99, 102, 241, 0.15);
+  border-radius: 4px;
 }
 </style>

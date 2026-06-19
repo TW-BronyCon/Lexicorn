@@ -1,4 +1,5 @@
 import { getKV } from '../../../utils/kv'
+import { renderStory } from '../../../utils/parser'
 
 export default defineEventHandler(async (event) => {
   const id = getRouterParam(event, 'id')
@@ -23,7 +24,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const body = await readBody(event)
-  const { answers, currentQueueIndex, status } = body
+  const { answers, currentQueueIndex, status, currentCandidate } = body
 
   // Update answers if provided
   if (answers !== undefined) {
@@ -38,6 +39,14 @@ export default defineEventHandler(async (event) => {
     const idx = parseInt(currentQueueIndex, 10)
     if (!isNaN(idx) && idx >= 0 && idx < session.queue.length) {
       session.currentQueueIndex = idx
+      // Prefill currentCandidate with existing answer for the new queue item (if any)
+      const nextBlankId = session.queue[idx]
+      const nextBlank = session.blanks.find((b: any) => b.id === nextBlankId)
+      if (nextBlank) {
+        session.currentCandidate = session.answers[nextBlank.canonicalName] || ''
+      } else {
+        session.currentCandidate = ''
+      }
     }
   }
 
@@ -46,6 +55,11 @@ export default defineEventHandler(async (event) => {
     if (status === 'input' || status === 'reveal') {
       session.status = status
     }
+  }
+
+  // Update current candidate if provided explicitly
+  if (currentCandidate !== undefined) {
+    session.currentCandidate = currentCandidate
   }
 
   session.updatedAt = new Date().toISOString()
@@ -61,7 +75,9 @@ export default defineEventHandler(async (event) => {
       queue: session.queue,
       currentQueueIndex: session.currentQueueIndex,
       answers: session.answers,
-      rawText: session.rawText
+      rawText: session.rawText,
+      currentCandidate: session.currentCandidate || '',
+      finalStory: session.status === 'reveal' ? renderStory(session.rawText, session.answers) : null
     }
   }
 })

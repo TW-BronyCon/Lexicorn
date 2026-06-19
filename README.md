@@ -74,7 +74,7 @@ This app is deployed as a full-stack **Cloudflare Pages** project.
 3. **Deploy:**
    ```bash
    npm run build
-   npx wrangler pages deploy .output/public
+   npx wrangler pages deploy dist
    ```
 
 ## Contributors

@@ -1,27 +1,27 @@
 <template>
   <div>
     <div class="editor-header animate-fade-in">
-      <h1 class="page-title">{{ isNew ? 'Create New Template' : 'Edit Template' }}</h1>
+      <h1 class="page-title">{{ isNew ? t('newTemplateTitle') : t('editTemplateTitle') }}</h1>
       <NuxtLink to="/host" class="btn btn-secondary btn-sm">
-        ← Back to Host Panel
+        {{ t('backToDashboardBtn') }}
       </NuxtLink>
     </div>
 
     <div v-if="loading" class="glass-card loading-card animate-fade-in">
       <div class="spinner"></div>
-      <p>Loading template details...</p>
+      <p>{{ t('loadingTemplate') }}</p>
     </div>
 
     <form v-else @submit.prevent="saveTemplate" class="editor-layout animate-fade-in" style="animation-delay: 0.1s;">
       <!-- Left Column: Story Input -->
       <div class="glass-card editor-main">
         <div class="form-group">
-          <label class="form-label" for="title">Story Title</label>
+          <label class="form-label" for="title">{{ t('templateTitleLabel') }}</label>
           <input 
             v-model="template.title" 
             type="text" 
             id="title" 
-            placeholder="e.g. My Crazy Breakfast"
+            :placeholder="t('templateTitlePlaceholder')"
             class="form-input"
             required
           />
@@ -29,7 +29,7 @@
 
         <div class="form-group">
           <div class="label-with-help">
-            <label class="form-label" for="rawText">Story Text with Placeholders</label>
+            <label class="form-label" for="rawText">{{ t('templateContentLabel') }}</label>
             <span class="help-trigger" @click="showSyntaxHelp = !showSyntaxHelp">
               <svg class="help-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
@@ -50,7 +50,7 @@
           <textarea 
             v-model="template.rawText" 
             id="rawText" 
-            placeholder="Today I ate 【Food 1】 and then I drank some water. I also ate some more 【Food 1 (Reference)】."
+            :placeholder="t('templateContentPlaceholder')"
             class="form-input form-textarea"
             required
             @input="onTextChange"
@@ -60,22 +60,21 @@
         <div class="editor-actions">
           <button type="submit" class="btn btn-primary" :disabled="saving">
             <span v-if="saving" class="mini-spinner"></span>
-            <span v-else>Save Template</span>
+            <span v-else>{{ t('saveTemplateBtn') }}</span>
           </button>
           <NuxtLink to="/host" class="btn btn-secondary">
-            Cancel
+            {{ t('cancelBtn') }}
           </NuxtLink>
         </div>
       </div>
 
       <!-- Right Column: Blanks Config -->
       <div class="glass-card editor-sidebar">
-        <h2 class="sidebar-title">Blanks Configuration</h2>
-        <p class="sidebar-desc">Configure details for placeholders detected in your story.</p>
+        <h2 class="sidebar-title">{{ t('variablesHeader') }}</h2>
+        <p class="sidebar-desc">{{ t('variablesDesc') }}</p>
 
         <div v-if="detectedPlaceholders.length === 0" class="no-placeholders-state">
-          <p>No placeholders detected yet.</p>
-          <p class="sub">Type brackets like <code>【Noun 1】</code> in the story to create blanks.</p>
+          <p>{{ t('noVariablesDetected') }}</p>
         </div>
 
         <div v-else class="placeholders-list">
@@ -83,26 +82,26 @@
             <div class="card-header">
               <span class="placeholder-tag">{{ name }}</span>
               <span v-if="isLinkedReference(name)" class="badge badge-success flex-badge">
-                Linked Reference
+                {{ t('linkedReferenceBadge') }}
               </span>
             </div>
 
             <div class="card-body">
               <div class="form-group sm-group">
-                <label class="form-label sm-label">Part of Speech / Category</label>
+                <label class="form-label sm-label">{{ t('categoryLabel') }}</label>
                 <input 
                   v-model="blanksConfig[name].category" 
                   type="text" 
-                  placeholder="e.g. Noun, Verb, Spooky Animal"
+                  :placeholder="t('categoryPlaceholder')"
                   class="form-input sm-input"
                 />
               </div>
               <div class="form-group sm-group">
-                <label class="form-label sm-label">Remarks / Instructions</label>
+                <label class="form-label sm-label">{{ t('remarksLabel') }}</label>
                 <input 
                   v-model="blanksConfig[name].remarks" 
                   type="text" 
-                  placeholder="e.g. Must be singular, uppercase, etc."
+                  :placeholder="t('remarksPlaceholder')"
                   class="form-input sm-input"
                 />
               </div>
@@ -115,6 +114,7 @@
 </template>
 
 <script setup>
+const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const isNew = computed(() => route.params.id === 'new')

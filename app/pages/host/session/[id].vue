@@ -9,12 +9,12 @@
           <line x1="12" y1="17" x2="12.01" y2="17"/>
         </svg>
       </span>
-      <h2>Host Authentication Failed</h2>
+      <h2>{{ t('unauthorizedHost') }}</h2>
       <p>{{ authError }}</p>
       <div class="actions">
-        <NuxtLink to="/host" class="btn btn-primary">Return to Host Panel</NuxtLink>
+        <NuxtLink to="/host" class="btn btn-primary">{{ t('returnHostPanelBtn') }}</NuxtLink>
         <NuxtLink :to="`/session/${route.params.id}`" class="btn btn-secondary">
-          Join as Viewer
+          {{ t('joinAsViewerBtn') }}
         </NuxtLink>
       </div>
     </div>
@@ -22,7 +22,7 @@
     <!-- Loading State -->
     <div v-else-if="loading" class="glass-card loading-card animate-fade-in">
       <div class="spinner"></div>
-      <p>Syncing session state from server...</p>
+      <p>{{ t('loadingSession') }}</p>
     </div>
 
     <!-- Active Session Controls -->
@@ -33,16 +33,16 @@
         <!-- Header details -->
         <div class="glass-card session-header-card">
           <div class="header-details">
-            <span class="session-badge">ACTIVE SESSION</span>
+            <span class="session-badge">{{ t('activeSessionBadge') }}</span>
             <h1 class="session-title">{{ session.title }}</h1>
             
             <div class="code-and-link">
               <div class="code-box">
-                <span class="label">Session Code:</span>
+                <span class="label">{{ t('sessionCodeLabel') }}</span>
                 <span class="code">{{ session.id }}</span>
               </div>
               <button @click="copyViewerLink" class="btn btn-secondary btn-sm copy-btn">
-                {{ copied ? 'Copied!' : 'Copy Viewer Link' }}
+                {{ copied ? t('copiedText') : t('copyLinkBtn') }}
               </button>
             </div>
           </div>
@@ -53,10 +53,10 @@
           <!-- Progress -->
           <div class="progress-info">
             <span class="progress-text">
-              Word {{ session.currentQueueIndex + 1 }} of {{ session.queue.length }}
+              {{ t('wordOfTotal', { current: session.currentQueueIndex + 1, total: session.queue.length }) }}
             </span>
             <span class="completion-text">
-              {{ filledUniqueCount }} / {{ uniqueCanonicalCount }} unique fields filled
+              {{ t('uniqueFieldsFilled', { filled: filledUniqueCount, total: uniqueCanonicalCount }) }}
             </span>
           </div>
           <div class="progress-container">
@@ -73,7 +73,7 @@
               <span v-if="isActiveBlankLinked" class="badge badge-success">Linked Reference</span>
             </div>
             
-            <h2 class="prompt-name">Enter word for: <span class="placeholder-label">{{ activeBlank.name }}</span></h2>
+            <h2 class="prompt-name">{{ t('enterWordFor') }}<span class="placeholder-label">{{ activeBlank.name }}</span></h2>
             <p v-if="activeBlank.remarks" class="prompt-remarks">{{ activeBlank.remarks }}</p>
 
             <form @submit.prevent="saveAndNext" class="prompt-form">
@@ -96,10 +96,10 @@
                   class="btn btn-secondary"
                   :disabled="session.currentQueueIndex === 0"
                 >
-                  ← Previous
+                  {{ t('prevBtn') }}
                 </button>
                 <button type="submit" class="btn btn-primary">
-                  {{ isLastInQueue ? 'Save & Complete' : 'Save & Next →' }}
+                  {{ isLastInQueue ? t('saveCompleteBtn') : t('saveNextBtn') }}
                 </button>
               </div>
             </form>
@@ -107,36 +107,36 @@
 
           <!-- Final Generation trigger -->
           <div v-if="isReadyToReveal" class="reveal-trigger-box">
-            <p class="congrats-text">All blanks have been filled!</p>
+            <p class="congrats-text">{{ t('allBlanksFilled') }}</p>
             <button @click="revealStory" class="btn btn-primary btn-lg pulse-glow w-full">
-              Reveal Final Story
+              {{ t('revealStoryBtn') }}
             </button>
           </div>
         </div>
 
-        <!-- Live Story Preview (Host Panel) -->
+        <!-- {{ t('livePreviewTitle') }} (Host Panel) -->
         <div v-if="session.status === 'input'" class="glass-card host-preview-card">
           <div class="host-preview-header" @click="showLivePreview = !showLivePreview">
             <div class="header-left">
-              <span class="host-badge font-bold">LIVE PREVIEW</span>
-              <h3>Live Story Preview</h3>
+              <span class="host-badge font-bold">{{ t('livePreviewBadge') }}</span>
+              <h3>{{ t('livePreviewTitle') }}</h3>
             </div>
             <button class="btn btn-secondary btn-sm">
-              {{ showLivePreview ? 'Hide Preview' : 'Show Preview' }}
+              {{ showLivePreview ? (locale.startsWith('zh') ? '隱藏預覽' : 'Hide Preview') : (locale.startsWith('zh') ? '顯示預覽' : 'Show Preview') }}
             </button>
           </div>
           
           <div v-if="showLivePreview" class="host-preview-content animate-fade-in">
-            <p class="preview-help-text">This preview updates in real-time as you fill in blanks. Viewers cannot see this unless you reveal the story.</p>
-            <div class="preview-story-box" v-html="finalStoryPreview || 'No blanks filled yet.'"></div>
+            <p class="preview-help-text">{{ t('livePreviewDesc') }}</p>
+            <div class="preview-story-box" v-html="finalStoryPreview || t('noBlanksFilledYet')"></div>
           </div>
         </div>
 
         <!-- Gameplay Panel: Reveal Mode -->
         <div v-else class="glass-card story-reveal-card">
           <div class="congrats-banner">
-            <h2>The Story is Revealed!</h2>
-            <p>Viewers can now see the final article on their screens.</p>
+            <h2>{{ t('storyRevealedTitle') }}</h2>
+            <p>{{ t('storyRevealedDesc') }}</p>
           </div>
 
           <div class="final-story-box">
@@ -145,10 +145,10 @@
 
           <div class="reveal-actions">
             <button @click="replaySession" class="btn btn-secondary">
-              Reset & Play Again
+              {{ t('resetPlayAgainBtn') }}
             </button>
             <button @click="exitSession" class="btn btn-secondary">
-              Exit to Dashboard
+              {{ t('exitDashboardBtn') }}
             </button>
           </div>
         </div>
@@ -156,12 +156,12 @@
 
       <div class="sidebar-column glass-card sidebar-card">
         <div class="sidebar-header">
-          <h3>Interactive Queue</h3>
+          <h3>{{ t('interactiveQueueTitle') }}</h3>
           <button @click="resetSession" class="btn btn-danger btn-sm">
-            Reset
+            {{ locale.startsWith('zh') ? '重設' : 'Reset' }}
           </button>
         </div>
-        <p class="sidebar-info">Jump directly to any blank in the sequence:</p>
+        <p class="sidebar-info">{{ t('sidebarInfoDesc') }}</p>
 
         <div class="queue-list">
           <button 
@@ -198,6 +198,7 @@
 </template>
 
 <script setup>
+const { locale, t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 
@@ -444,7 +445,7 @@ const revealStory = async () => {
 }
 
 const resetSession = async () => {
-  if (!confirm('Are you sure you want to reset this session? All answered words will be cleared.')) {
+  if (!confirm(t('confirmResetPrompt'))) {
     return
   }
   
@@ -463,7 +464,7 @@ const resetSession = async () => {
 }
 
 const exitSession = async () => {
-  if (!confirm('Are you sure you want to end this game and exit? The session code will be deactivated.')) {
+  if (!confirm(t('confirmExitPrompt'))) {
     return
   }
   clearCandidateDebounce()
@@ -482,7 +483,7 @@ const exitSession = async () => {
 }
 
 const replaySession = async () => {
-  if (!confirm('Are you sure you want to start a new session? The current session will be ended.')) {
+  if (!confirm(t('confirmReplayPrompt'))) {
     return
   }
   clearCandidateDebounce()
@@ -890,7 +891,7 @@ onMounted(async () => {
   to { transform: rotate(360deg); }
 }
 
-/* Live Story Preview (Host Panel) styling */
+/* {{ t('livePreviewTitle') }} (Host Panel) styling */
 .host-preview-card {
   padding: 1.75rem;
   border: 1px dashed rgba(245, 158, 11, 0.4);

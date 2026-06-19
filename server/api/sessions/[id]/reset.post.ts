@@ -30,6 +30,7 @@ export default defineEventHandler(async (event) => {
   session.status = 'input'
   session.queue = orderedQueue
   session.currentCandidate = ''
+  session.revealedBlankIds = orderedQueue.length > 0 ? [orderedQueue[0]] : []
   session.updatedAt = new Date().toISOString()
 
   await kv.put(sessionKey, session)

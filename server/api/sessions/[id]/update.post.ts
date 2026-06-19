@@ -47,6 +47,13 @@ export default defineEventHandler(async (event) => {
       } else {
         session.currentCandidate = ''
       }
+      // Add the next active blank to revealedBlankIds if not already present
+      if (!session.revealedBlankIds) {
+        session.revealedBlankIds = []
+      }
+      if (!session.revealedBlankIds.includes(nextBlankId)) {
+        session.revealedBlankIds.push(nextBlankId)
+      }
     }
   }
 

@@ -8,7 +8,7 @@
           <NuxtLink to="/host" class="nav-link" active-class="active">{{ t('hostPanel') }}</NuxtLink>
         </nav>
         <div class="lang-selector-wrapper">
-          <select :value="locale" @change="e => setLocale(e.target.value as any)" class="lang-select">
+          <select :value="locale" @change="e => setLocale(e.target.value)" class="lang-select">
             <option value="en">English</option>
             <option value="zh-TW">繁體中文</option>
             <option value="zh-CN">简体中文</option>

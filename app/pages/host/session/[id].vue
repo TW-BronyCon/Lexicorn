@@ -56,7 +56,7 @@
               {{ t('wordOfTotal', { current: session.currentQueueIndex + 1, total: session.queue.length }) }}
             </span>
             <span class="completion-text">
-              {{ t('uniqueFields{{ t('filledStatus') }}', { filled: filledUniqueCount, total: uniqueCanonicalCount }) }}
+              {{ t('uniqueFieldsFilled', { filled: filledUniqueCount, total: uniqueCanonicalCount }) }}
             </span>
           </div>
           <div class="progress-container">
@@ -107,7 +107,7 @@
 
           <!-- Final Generation trigger -->
           <div v-if="isReadyToReveal" class="reveal-trigger-box">
-            <p class="congrats-text">{{ t('allBlanks{{ t('filledStatus') }}') }}</p>
+            <p class="congrats-text">{{ t('allBlanksFilled') }}</p>
             <button @click="revealStory" class="btn btn-primary btn-lg pulse-glow w-full">
               {{ t('revealStoryBtn') }}
             </button>
@@ -128,7 +128,7 @@
           
           <div v-if="showLivePreview" class="host-preview-content animate-fade-in">
             <p class="preview-help-text">{{ t('livePreviewDesc') }}</p>
-            <div class="preview-story-box" v-html="finalStoryPreview || '{{ t('noBlanks{{ t('filledStatus') }}Yet') }}'"></div>
+            <div class="preview-story-box" v-html="finalStoryPreview || t('noBlanksFilledYet')"></div>
           </div>
         </div>
 

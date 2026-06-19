@@ -37,40 +37,36 @@
             <span class="code">{{ session.id }}</span>
           </div>
 
-          <div class="radial-progress-box">
-            <svg class="progress-ring" width="180" height="180">
-              <circle
-                class="progress-ring-circle-bg"
-                stroke="rgba(255,255,255,0.03)"
-                stroke-width="14"
-                fill="transparent"
-                r="78"
-                cx="90"
-                cy="90"
-              />
-              <circle
-                class="progress-ring-circle"
-                stroke="var(--md-sys-color-primary)"
-                stroke-width="14"
-                fill="transparent"
-                r="78"
-                cx="90"
-                cy="90"
-                :stroke-dasharray="strokeDasharray"
-                :stroke-dashoffset="strokeDashoffset"
-              />
-            </svg>
-            <div class="radial-label">
-              <span class="percent-num">{{ percentComplete }}%</span>
-              <span class="sub">collected</span>
+          <!-- Active Word Kiosk Display (Current Candidate) -->
+          <div v-if="activeBlank" class="active-word-card">
+            <span class="active-word-badge">{{ activeBlank.category || 'Word' }}</span>
+            <h2 class="active-word-prompt">{{ activeBlank.name }}</h2>
+            <p v-if="activeBlank.remarks" class="active-word-remarks">{{ activeBlank.remarks }}</p>
+            
+            <div class="candidate-input-display">
+              <span v-if="session.currentCandidate" class="candidate-text">
+                {{ session.currentCandidate }}<span class="cursor-blink">|</span>
+              </span>
+              <span v-else class="candidate-placeholder">
+                Host is typing<span class="loading-dots">...</span>
+              </span>
             </div>
           </div>
 
-          <div class="status-summary">
-            <h2>The Host is gathering words...</h2>
-            <p class="progress-desc">
-              <strong>{{ session.filledBlanks }}</strong> / <strong>{{ session.totalBlanks }}</strong> completed
-            </p>
+          <!-- Compact Progress Indicator (Deprioritized) -->
+          <div class="compact-progress-container">
+            <div class="compact-progress-header">
+              <span class="compact-progress-label">Overall Progress</span>
+              <span class="compact-progress-val">
+                <strong>{{ session.filledBlanks }}</strong> / <strong>{{ session.totalBlanks }}</strong>
+              </span>
+            </div>
+            <div class="compact-progress-track">
+              <div 
+                class="compact-progress-bar" 
+                :style="{ width: `${percentComplete}%` }"
+              ></div>
+            </div>
           </div>
         </div>
 
@@ -151,28 +147,32 @@ const session = ref(null)
 const loading = ref(true)
 const errorMsg = ref('')
 const hostUrl = ref('')
+const isHost = ref(false)
 
 let pollInterval = null
-
-// Circle dimensions
-const circleRadius = 78
-const strokeDasharray = computed(() => 2 * Math.PI * circleRadius)
 
 const percentComplete = computed(() => {
   if (!session.value || !session.value.totalBlanks) return 0
   return Math.round((session.value.filledBlanks / session.value.totalBlanks) * 100)
 })
 
-const strokeDashoffset = computed(() => {
-  const percent = percentComplete.value
-  const offset = strokeDasharray.value - (percent / 100) * strokeDasharray.value
-  return offset
+const activeBlank = computed(() => {
+  if (!session.value || !session.value.blanks || session.value.currentQueueIndex === undefined) return null
+  return session.value.blanks[session.value.currentQueueIndex]
 })
 
 // Polling function
 const syncSession = async () => {
   try {
-    const data = await $fetch(`/api/sessions/${route.params.id}`)
+    const headers = {}
+    if (process.client) {
+      const token = localStorage.getItem(`host_token_${route.params.id}`)
+      if (token) {
+        headers['x-host-token'] = token
+        isHost.value = true
+      }
+    }
+    const data = await $fetch(`/api/sessions/${route.params.id}?view=viewer`, { headers })
     session.value = data
     errorMsg.value = ''
   } catch (err) {
@@ -181,6 +181,7 @@ const syncSession = async () => {
       stopPolling()
     } else {
       console.error('Polling error:', err)
+      errorMsg.value = err.data?.message || err.message || 'An error occurred while syncing session state.'
     }
   } finally {
     loading.value = false
@@ -263,8 +264,9 @@ onUnmounted(() => {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  justify-content: center;
+  justify-content: flex-start;
   padding: 3rem 2rem;
+  gap: 1.2rem;
 }
 
 .queue-panel {
@@ -346,61 +348,128 @@ onUnmounted(() => {
   color: var(--md-sys-color-primary);
 }
 
-/* Radial Progress styling */
-.radial-progress-box {
-  position: relative;
-  width: 180px;
-  height: 180px;
-  margin-bottom: 1.5rem;
-}
-
-.progress-ring-circle {
-  transform: rotate(-90deg);
-  transform-origin: 50% 50%;
-  transition: stroke-dashoffset 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.radial-label {
-  position: absolute;
-  top: 0;
-  left: 0;
+/* Active Word Card styling */
+.active-word-card {
   width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  margin: 1.5rem 0;
+  padding: 1.75rem;
+  background: rgba(15, 23, 42, 0.4);
+  border: 1px solid var(--border-glow);
+  border-radius: var(--radius-md);
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(8px);
 }
 
-.radial-label .percent-num {
-  font-family: var(--font-title);
-  font-size: 2.6rem;
-  font-weight: 800;
-  line-height: 1;
-}
-
-.radial-label .sub {
+.active-word-badge {
+  display: inline-block;
   font-size: 0.8rem;
-  color: var(--text-secondary);
+  font-weight: 700;
   text-transform: uppercase;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  margin-top: 0.25rem;
+  letter-spacing: 0.05em;
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  color: #a78bfa;
+  padding: 0.25rem 0.75rem;
+  border-radius: 99px;
+  margin-bottom: 0.75rem;
 }
 
-.status-summary h2 {
-  font-size: 1.3rem;
+.active-word-prompt {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #fff;
   margin-bottom: 0.25rem;
 }
 
-.progress-desc {
-  font-size: 1.1rem;
+.active-word-remarks {
+  font-size: 0.9rem;
   color: var(--text-secondary);
+  font-style: italic;
+  margin-bottom: 1.25rem;
 }
 
-.progress-desc strong {
-  color: var(--text-primary);
-  font-size: 1.25rem;
+.candidate-input-display {
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  padding: 1rem 1.5rem;
+  min-height: 4.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.4);
+}
+
+.candidate-text {
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--md-sys-color-primary);
+  letter-spacing: 0.05em;
+  text-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+}
+
+.cursor-blink {
+  animation: blink 1s infinite steps(1);
+  color: var(--md-sys-color-primary);
+  font-weight: 300;
+  margin-left: 2px;
+}
+
+.candidate-placeholder {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  font-style: italic;
+  letter-spacing: 0.02em;
+}
+
+.loading-dots {
+  display: inline-block;
+  animation: dotBlink 1.5s infinite;
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+@keyframes dotBlink {
+  0% { opacity: .2; }
+  20% { opacity: 1; }
+  100% { opacity: .2; }
+}
+
+/* Compact Progress styling */
+.compact-progress-container {
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.compact-progress-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.compact-progress-label {
+  font-weight: 600;
+}
+
+.compact-progress-track {
+  width: 100%;
+  height: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 99px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+.compact-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--md-sys-color-primary) 0%, #a855f7 100%);
+  border-radius: 99px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Slots Grid checklist */

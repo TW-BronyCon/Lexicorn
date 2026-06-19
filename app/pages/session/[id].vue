@@ -3,7 +3,7 @@
     <!-- Loading Screen -->
     <div v-if="loading && !session" class="kiosk-center-card loading-card animate-fade-in">
       <div class="spinner"></div>
-      <p class="loading-text">Locating storyteller room...</p>
+      <p class="loading-text">{{ t('loadingSession') }}</p>
     </div>
 
     <!-- Error Screen -->
@@ -13,9 +13,9 @@
           <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
         </svg>
       </span>
-      <h2>Room Not Found</h2>
+      <h2>{{ t('roomNotFound') }}</h2>
       <p>{{ errorMsg }}</p>
-      <NuxtLink to="/" class="btn btn-primary">Return to Home</NuxtLink>
+      <NuxtLink to="/" class="btn btn-primary">{{ t('returnHomeBtn') }}</NuxtLink>
     </div>
 
     <!-- Main Viewer View -->
@@ -27,13 +27,13 @@
         <!-- Left Panel: Session Status & Big Code -->
         <div class="glass-card info-panel">
           <div class="live-badge-wrapper">
-            <span class="live-indicator pulse-glow">● LIVE BROADCAST</span>
+            <span class="live-indicator pulse-glow">{{ t('liveBroadcastBadge') }}</span>
           </div>
           
           <h1 class="session-title">{{ session.title }}</h1>
           
           <div class="kiosk-code-box">
-            <span class="label">Join the game with code:</span>
+            <span class="label">{{ t('joinGameWithCode') }}</span>
             <span class="code">{{ session.id }}</span>
           </div>
 
@@ -48,7 +48,7 @@
                 {{ session.currentCandidate }}<span class="cursor-blink">|</span>
               </span>
               <span v-else class="candidate-placeholder">
-                Host is typing<span class="loading-dots">...</span>
+                {{ t('hostIsTyping') }}<span class="loading-dots">...</span>
               </span>
             </div>
           </div>
@@ -56,7 +56,7 @@
           <!-- Compact Progress Indicator (Deprioritized) -->
           <div class="compact-progress-container">
             <div class="compact-progress-header">
-              <span class="compact-progress-label">Overall Progress</span>
+              <span class="compact-progress-label">{{ t('overallProgress') }}</span>
               <span class="compact-progress-val">
                 <strong>{{ session.filledBlanks }}</strong> / <strong>{{ session.totalBlanks }}</strong>
               </span>
@@ -72,7 +72,7 @@
 
         <!-- Right Panel: Scrolling Blanks Grid -->
         <div class="glass-card queue-panel">
-          <h2 class="panel-subtitle">Blanks Checklist</h2>
+          <h2 class="panel-subtitle">{{ t('blanksChecklistTitle') }}</h2>
           
           <div class="slots-grid">
             <div 
@@ -107,10 +107,10 @@
                 <span class="slot-name">{{ blank.name }}</span>
                 <span class="slot-category">{{ blank.category || 'Word' }}</span>
                 <span class="slot-status">
-                  <span v-if="session.currentQueueIndex === index" class="status-typing">Host typing...</span>
-                  <span v-else-if="blank.isAnswered" class="status-filled">Filled</span>
-                  <span v-else-if="blank.isRevealed" class="status-pending">Waiting...</span>
-                  <span v-else class="status-locked">Locked</span>
+                  <span v-if="session.currentQueueIndex === index" class="status-typing">{{ t('hostTyping') }}</span>
+                  <span v-else-if="blank.isAnswered" class="status-filled">{{ t('filledStatus') }}</span>
+                  <span v-else-if="blank.isRevealed" class="status-pending">{{ t('waitingStatus') }}</span>
+                  <span v-else class="status-locked">{{ t('lockedStatus') }}</span>
                 </span>
               </div>
             </div>
@@ -123,7 +123,7 @@
       <div v-else class="kiosk-reveal-wrapper">
         <div class="glass-card reveal-card">
           <div class="reveal-header">
-            <span class="completed-badge">THE STORY IS READY</span>
+            <span class="completed-badge">{{ t('storyReadyBadge') }}</span>
             <h1 class="story-title">{{ session.title }}</h1>
           </div>
 
@@ -142,6 +142,7 @@ definePageMeta({
   layout: false
 })
 
+const { t } = useI18n()
 const route = useRoute()
 const session = ref(null)
 const loading = ref(true)
@@ -177,7 +178,7 @@ const syncSession = async () => {
     errorMsg.value = ''
   } catch (err) {
     if (err.statusCode === 404) {
-      errorMsg.value = `We couldn't find a live storyteller session with code "${route.params.id.toUpperCase()}".`
+      errorMsg.value = t('roomNotFound') + `: "${route.params.id.toUpperCase()}"`
       stopPolling()
     } else {
       console.error('Polling error:', err)

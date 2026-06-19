@@ -2,9 +2,9 @@
   <div class="home-grid">
     <!-- Hero / Intro -->
     <div class="hero-section">
-      <h1 class="hero-title">Create and Share <span class="accent-text">Interactive Stories</span></h1>
+      <h1 class="hero-title">{{ t('heroTitle1') }} <span class="accent-text">{{ t('heroTitleAccent') }}</span></h1>
       <p class="hero-desc">
-        Storyteller is a live, "Mad Libs"-style word game. Hosts create stories with hidden blanks, players and viewers watch in real-time as the gaps are filled, and together they reveal the hilarious final story!
+        {{ t('heroDesc') }}
       </p>
       
       <div class="features-list">
@@ -15,8 +15,8 @@
             </svg>
           </span>
           <div>
-            <h3>Author Templates</h3>
-            <p>Write text stories and configure dynamic blanks with parts of speech and remarks.</p>
+            <h3>{{ t('feature1Title') }}</h3>
+            <p>{{ t('feature1Desc') }}</p>
           </div>
         </div>
         <div class="feature-item">
@@ -27,8 +27,8 @@
             </svg>
           </span>
           <div>
-            <h3>Variable Linking</h3>
-            <p>Link placeholders together. Answers prefill automatically for references.</p>
+            <h3>{{ t('feature2Title') }}</h3>
+            <p>{{ t('feature2Desc') }}</p>
           </div>
         </div>
         <div class="feature-item">
@@ -38,8 +38,8 @@
             </svg>
           </span>
           <div>
-            <h3>Live Viewer Sync</h3>
-            <p>Viewers watch progress poll in real-time without spoiling the words prematurely.</p>
+            <h3>{{ t('feature3Title') }}</h3>
+            <p>{{ t('feature3Desc') }}</p>
           </div>
         </div>
       </div>
@@ -49,22 +49,22 @@
     <div class="actions-section">
       <!-- Join Card -->
       <div class="glass-card join-card pulse-glow">
-        <h2>Join as Viewer</h2>
-        <p>Enter a 6-character session code to watch a live storyteller session.</p>
+        <h2>{{ t('joinTitle') }}</h2>
+        <p>{{ t('joinDesc') }}</p>
         
         <form @submit.prevent="handleJoin" class="join-form">
           <div class="form-group">
             <input 
               v-model="sessionCode" 
               type="text" 
-              placeholder="e.g. AB12XY" 
+              :placeholder="t('joinInputPlaceholder')" 
               maxlength="6"
               class="form-input code-input"
               required
             />
           </div>
           <button type="submit" class="btn btn-primary w-full">
-            Join Session
+            {{ t('joinButton') }}
           </button>
           <p v-if="errorMsg" class="error-text">{{ errorMsg }}</p>
         </form>
@@ -72,10 +72,10 @@
 
       <!-- Host Card -->
       <div class="glass-card host-cta">
-        <h2>Host a Game</h2>
-        <p>Want to drive the game and fill in templates for your crowd?</p>
+        <h2>{{ t('hostTitle') }}</h2>
+        <p>{{ t('hostDesc') }}</p>
         <NuxtLink to="/host" class="btn btn-secondary w-full">
-          Open Host Panel
+          {{ t('hostButton') }}
         </NuxtLink>
       </div>
     </div>
@@ -83,6 +83,7 @@
 </template>
 
 <script setup>
+const { t } = useI18n()
 const sessionCode = ref('')
 const errorMsg = ref('')
 const router = useRouter()
@@ -91,7 +92,7 @@ const handleJoin = () => {
   errorMsg.value = ''
   const code = sessionCode.value.trim().toUpperCase()
   if (code.length !== 6) {
-    errorMsg.value = 'Code must be exactly 6 characters.'
+    errorMsg.value = t('joinErrorLength')
     return
   }
   

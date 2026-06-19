@@ -2,21 +2,21 @@
   <div>
     <div class="dashboard-header animate-fade-in">
       <div>
-        <h1 class="page-title">Host Panel</h1>
-        <p class="page-subtitle">Manage your story templates and launch live interactive sessions.</p>
+        <h1 class="page-title">{{ t('hostPanelTitle') }}</h1>
+        <p class="page-subtitle">{{ t('hostPanelDesc') }}</p>
       </div>
       <NuxtLink to="/host/template/new" class="btn btn-primary">
-        + Create Template
+        {{ t('createTemplateBtn') }}
       </NuxtLink>
     </div>
 
     <!-- Templates Section -->
     <div class="glass-card templates-card animate-fade-in" style="animation-delay: 0.1s;">
-      <h2 class="section-title">Saved Story Templates</h2>
+      <h2 class="section-title">{{ t('savedTemplatesTitle') }}</h2>
       
       <div v-if="pending" class="loading-state">
         <div class="spinner"></div>
-        <p>Loading templates...</p>
+        <p>{{ t('loadingTemplates') }}</p>
       </div>
 
       <div v-else-if="!templates || templates.length === 0" class="empty-state">
@@ -29,10 +29,10 @@
             <polyline points="10 9 9 9 8 9"/>
           </svg>
         </span>
-        <h3>No templates found</h3>
-        <p>Start by creating your first story template containing blanks to fill.</p>
+        <h3>{{ t('noTemplatesFound') }}</h3>
+        <p>{{ t('noTemplatesDesc') }}</p>
         <NuxtLink to="/host/template/new" class="btn btn-primary" style="margin-top: 1rem;">
-          Create a Template
+          {{ t('createTemplateBtn') }}
         </NuxtLink>
       </div>
 
@@ -40,10 +40,10 @@
         <div v-for="temp in templates" :key="temp.id" class="template-card">
           <div class="template-info">
             <h3 class="template-title">{{ temp.title }}</h3>
-            <p class="template-date">Created on {{ formatDate(temp.createdAt) }}</p>
+            <p class="template-date">{{ t('createdOn', { date: formatDate(temp.createdAt) }) }}</p>
             <div class="template-stats">
               <span class="badge badge-primary">
-                {{ Object.keys(temp.blanksConfig || {}).length }} unique variables
+                {{ t('uniqueVariables', { count: Object.keys(temp.blanksConfig || {}).length }) }}
               </span>
             </div>
           </div>
@@ -55,17 +55,17 @@
               :disabled="startingId === temp.id"
             >
               <span v-if="startingId === temp.id" class="mini-spinner"></span>
-              <span v-else>Start Session</span>
+              <span v-else>{{ t('startSessionBtn') }}</span>
             </button>
             <NuxtLink :to="`/host/template/${temp.id}`" class="btn btn-secondary btn-sm">
-              Edit
+              {{ t('editBtn') }}
             </NuxtLink>
             <button 
               @click="confirmDelete(temp)" 
               class="btn btn-danger btn-sm"
               :disabled="deletingId === temp.id"
             >
-              Delete
+              {{ t('deleteBtn') }}
             </button>
           </div>
         </div>
@@ -75,6 +75,7 @@
 </template>
 
 <script setup>
+const { t } = useI18n()
 const startingId = ref(null)
 const deletingId = ref(null)
 const router = useRouter()
@@ -118,7 +119,7 @@ const startSession = async (templateId) => {
 
 // Delete template
 const confirmDelete = async (template) => {
-  if (!confirm(`Are you sure you want to delete "${template.title}"? This cannot be undone.`)) {
+  if (!confirm(t('confirmDeleteText', { title: template.title }))) {
     return
   }
   

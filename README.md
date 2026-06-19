@@ -1,112 +1,92 @@
-# TWBC Storyteller
+<p align="center">
+  <img src="./public/favicon.svg" alt="TWBC Logo" align="center" width="256">
+</p>
 
-TWBC Storyteller is a live, collaborative, "Mad Libs"-style word game built for Taiwan BronyCon. Hosts can create customized story templates with hidden placeholders (blanks), while players and spectators watch progress synchronize in real-time on a clean kiosk view. Together, they fill in the blanks and reveal a hilarious final story!
+<h1 align="center">TWBC - Storyteller</h1>
 
-## 🚀 Key Features
+<p align="center">
+  A collaborative, "Mad Libs"-style word game built for Taiwan BronyCon.
+</p>
 
-* **Interactive Storytelling**: Mad Libs style template creator with bracketed blanks (`【Noun 1】` or `[Noun 1]`).
-* **Variable Linking & References**: Automatically links duplicate variables (e.g., `【Food 1 (Reference)】` or `[Food 1 (Ref)]` matches and copies the value of `Food 1`).
-* **Live Kiosk Viewer Panel**: Real-time polling layout tailored for projectors and shared spectator displays. Spectators can follow filling progress checkmarks without seeing future/unrevealed blanks.
-* **Material Design 3 (MD3) Styling**: Premium, flat visual design system using solid shapes, outlines, and rounded pills (no gradients/emojis) built on custom CSS variables.
-* **Taiwan BronyCon (TWBC) Branding**: Theme aligned with the official twbc-site colors (deep purple background `#120b18`, surface card containers `#191022`, and a primary violet accent `#a85bc4`).
-* **Cloudflare KV Integration**: Server handlers interact natively with Cloudflare KV, with a robust local file-cache fallback (`.data/kv/`) for offline development.
+<p align="center">
+  <a href="https://nuxt.com"><img
+    alt="Made with Nuxt"
+    src="https://img.shields.io/badge/made_with-nuxt-00DC82?logo=nuxt.js"
+  ></a>
+  <img
+    alt="Works on my machine"
+    src="https://img.shields.io/badge/works_on-my_machine-dark_green"
+  >
+</p>
 
----
+## What is this?
 
-## 🛠️ Tech Stack & Architecture
+This is a live, collaborative, "Mad Libs"-style word game built for **Taiwan BronyCon (TWBC)**, a fan-organized convention for *My Little Pony: Friendship is Magic* fans in Taiwan.
 
-* **Framework**: [Nuxt 4](https://nuxt.com/) (Vue 3, Composition API)
-* **Hosting/Serverless**: [Cloudflare Pages](https://pages.cloudflare.com/) (using wrangler configuration)
-* **Storage**: [Cloudflare KV](https://developers.cloudflare.com/kv/) for low-latency session and template storage
-* **Styling**: Vanilla CSS utilizing Material Design 3 tokens and TWBC brand variables ([app/assets/css/main.css](app/assets/css/main.css)).
+The application features:
+- **Story Creator:** Author templates with bracketed blanks and variable references.
+- **Host Controls:** Manage active templates, host inputs, and game state.
+- **Kiosk View:** Real-time spectator display that polls for progress.
+- **Cloudflare Integration:** Built-in Cloudflare KV support with a local filesystem cache fallback.
 
----
+## Tech Stack
 
-## 📂 Project Structure
+- **Framework:** [Nuxt 4](https://nuxt.com/) (Vue 3 Composition API)
+- **Database/Persistence:** [Cloudflare KV](https://developers.cloudflare.com/kv/)
+- **Styling:** Vanilla CSS (Material Design 3 tokens)
 
-```
-├── app/
-│   ├── app.vue                 # Main entrypoint
-│   ├── assets/
-│   │   └── css/
-│   │       └── main.css        # Material Design 3 + TWBC CSS variables & layout resets
-│   ├── layouts/
-│   │   └── default.vue         # Shared header/navigation shell
-│   └── pages/
-│       ├── index.vue           # Landing page (Join Session / Open Host Panel)
-│       ├── host/
-│       │   ├── index.vue       # Host template manager dashboard
-│       │   ├── session/
-│       │   │   └── [id].vue    # Host game controls, prompt manager, and checklist queue
-│       │   └── template/
-│       │       └── [id].vue    # Interactive template editor and variable config
-│       └── session/
-│           └── [id].vue        # Viewer kiosk broadcast screen (layout-disabled)
-├── public/
-│   ├── favicon.svg             # Custom TWBC brand favicon (book + sparkle star)
-│   ├── favicon.ico             # Fallback browser favicon
-│   └── robots.txt              # Standard robots config
-├── server/
-│   ├── api/
-│   │   ├── sessions/           # Session management routes (spawn, reset, update)
-│   │   └── templates/          # Template CRUD endpoints
-│   └── utils/
-│       ├── kv.ts               # Cloudflare KV wrapper & local JSON file caching fallback
-│       └── parser.ts           # Advanced bracket parses & canonical reference mapping
-├── nuxt.config.ts              # Nuxt configuration and HTML meta head declarations
-└── wrangler.jsonc              # Cloudflare configuration file
-```
+## Getting Started
 
----
+### Prerequisites
 
-## 💻 Local Development
+- Node.js (Latest LTS recommended)
+- `npm`
 
-### 1. Installation
-Install dependencies:
+### Installation
+
 ```bash
+# Install dependencies
 npm install
 ```
 
-### 2. Run local server
-Start the Nuxt development environment:
+### Development
+
 ```bash
+# Start development server
 npm run dev
 ```
-Open `http://localhost:3000` in your browser. Local data will automatically store in `.data/kv/` for persistence.
 
-### 3. Production Build & Preview
-To build and check production compilation locally:
+### Production
+
 ```bash
+# Build for production
 npm run build
+
+# Preview production build
 npm run preview
 ```
+## Deployment
 
----
+This app is deployed as a full-stack **Cloudflare Pages** project.
 
-## 🌐 Deployment to Cloudflare Pages
-
-This application compiles statically and dynamically, optimized to run as a Cloudflare Pages full-stack app.
-
-1. **Create KV Namespace**: Create a KV namespace on your Cloudflare dashboard (e.g., named `storyteller-kv`).
-2. **Update Configuration**: In [wrangler.jsonc](wrangler.jsonc), change `"STORYTELLER_KV_PLACEHOLDER"` to your deployed KV namespace ID:
-   ```json
-   "kv_namespaces": [
-     {
-       "binding": "STORYTELLER_KV",
-       "id": "your-actual-kv-namespace-id"
-     }
-   ]
-   ```
-3. **Deploy via Wrangler**:
+1. **Create KV Namespace:** Create a KV namespace on your Cloudflare dashboard.
+2. **Configure:** In [wrangler.jsonc](./wrangler.jsonc), bind `STORYTELLER_KV` to your KV namespace ID.
+3. **Deploy:**
    ```bash
+   npm run build
    npx wrangler pages deploy .output/public
    ```
-   Or connect your GitHub repository directly to Cloudflare Pages for automatic CI/CD deployment.
 
----
+## Contributors
 
-## 🔒 Security & Access Protection (Cloudflare Access)
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for commit and branch guidelines.
 
-To secure the creation and editing controls, the Host dashboard routes (`/host/*`) and templates APIs (`/api/templates/*`) should be protected using **Cloudflare Zero Trust Access**.
+## License
 
-For detailed step-by-step setup on hiding the admin panel behind Access, please consult the security guidelines or refer to the Cloudflare Zero Trust console.
+Copyright (C) 2026 TWBC
+
+**Code:** This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+**Assets:** All visual assets (including logos, images, and icons) are **not** covered by the GPL license. These assets remain the exclusive property and copyright of the TWBC team. Unauthorized use, redistribution, or modification of these assets is prohibited.
+
+See [LICENSE](./LICENSE) for details.

@@ -71,7 +71,8 @@ export default defineEventHandler(async (event) => {
           category: blank.category,
           remarks: blank.remarks,
           isAnswered,
-          isRevealed: true
+          isRevealed: true,
+          answer: isAnswered ? ans : null
         }
       } else {
         return {

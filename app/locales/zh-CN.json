@@ -37,6 +37,7 @@
   "templateTitleLabel": "模板标题",
   "templateTitlePlaceholder": "输入一个吸引人的标题...",
   "templateContentLabel": "故事内容",
+  "uploadFileBtn": "上传文件 (.md/.txt)",
   "templateContentDesc": "使用括号如 【名词 1】 或 [动词] 来定义空格。",
   "templateContentPlaceholder": "在此处编写故事。使用括号 【名词 1】 或 [动词] 将会自动被检测为填空变量。",
   "variablesHeader": "配置填空变量",

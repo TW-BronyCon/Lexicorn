@@ -37,6 +37,7 @@
   "templateTitleLabel": "範本標題",
   "templateTitlePlaceholder": "輸入一個吸引人的標題...",
   "templateContentLabel": "故事內容",
+  "uploadFileBtn": "上傳檔案 (.md/.txt)",
   "templateContentDesc": "使用括號如 【名詞 1】 或 [動詞] 來定義空格。",
   "templateContentPlaceholder": "在此處編寫故事。使用括號 【名詞 1】 或 [動詞] 將會自動被偵測為填空變數。",
   "variablesHeader": "配置填空變數",

@@ -37,6 +37,7 @@
   "templateTitleLabel": "Template Title",
   "templateTitlePlaceholder": "Enter a catchy title...",
   "templateContentLabel": "Story Content",
+  "uploadFileBtn": "Upload File (.md/.txt)",
   "templateContentDesc": "Use brackets like 【Noun 1】 or [Verb] to define blanks.",
   "templateContentPlaceholder": "Write your story here. Placeholders like 【Noun 1】 or [Verb] will be detected as variables.",
   "variablesHeader": "Configure Blanks/Variables",

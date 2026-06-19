@@ -57,9 +57,10 @@ export default defineEventHandler(async (event) => {
     })
 
     // Map blanks in queue order, masking details for future blanks
+    const revealedBlankIds = session.revealedBlankIds || (queue.length > 0 ? [queue[0]] : [])
     const viewerBlanks = queue.map((blankId: string, queueIndex: number) => {
       const blank = blanks.find((b: any) => b.id === blankId)
-      const isRevealed = queueIndex <= (session.currentQueueIndex || 0)
+      const isRevealed = revealedBlankIds.includes(blankId) || (blank && answers[blank.canonicalName] !== undefined && answers[blank.canonicalName] !== null && answers[blank.canonicalName].trim() !== '')
 
       if (blank && isRevealed) {
         const ans = answers[blank.canonicalName]

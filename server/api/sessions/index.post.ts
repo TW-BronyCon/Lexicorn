@@ -65,6 +65,7 @@ export default defineEventHandler(async (event) => {
     queue,
     currentQueueIndex: 0,
     answers: {}, // Maps canonicalName -> answer
+    revealedBlankIds: queue.length > 0 ? [queue[0]] : [],
     status: 'input', // 'input' | 'reveal'
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()

@@ -1,6 +1,15 @@
 import { getKV } from '../../utils/kv'
 import { extractBlanks } from '../../utils/parser'
 
+function shuffleArray<T>(array: T[]): T[] {
+  const arr = [...array]
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]]
+  }
+  return arr
+}
+
 function generateSessionId(): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
   let result = ''
@@ -51,8 +60,8 @@ export default defineEventHandler(async (event) => {
     }
   })
 
-  // Create queue of blank IDs in FIFO order
-  const queue = sessionBlanks.map(b => b.id)
+  // Create randomized queue of blank IDs
+  const queue = shuffleArray(sessionBlanks.map(b => b.id))
   
   const hostToken = generateHostToken()
   const sessionState = {

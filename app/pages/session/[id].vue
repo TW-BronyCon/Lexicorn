@@ -26,11 +26,7 @@
         
         <!-- Left Panel: Session Status & Big Code -->
         <div class="glass-card info-panel">
-          <div class="live-badge-wrapper">
-            <span class="live-indicator pulse-glow">{{ t('liveBroadcastBadge') }}</span>
-          </div>
-          
-          <h1 class="session-title">{{ session.title }}</h1>
+          <h1 class="session-title">{{ t('logo') }}</h1>
           
           <div class="kiosk-code-box">
             <span class="label">{{ t('joinGameWithCode') }}</span>
@@ -119,16 +115,12 @@
 
       </div>
 
-      <!-- Reveal Phase: Show Story -->
+      <!-- Reveal Phase: Show Story Title Only in the Middle -->
       <div v-else class="kiosk-reveal-wrapper">
         <div class="glass-card reveal-card">
-          <div class="reveal-header">
+          <div class="reveal-header-centered">
             <span class="completed-badge">{{ t('storyReadyBadge') }}</span>
-            <h1 class="story-title">{{ session.title }}</h1>
-          </div>
-
-          <div class="final-story-box animate-story-reveal">
-            <div class="story-output-text kiosk-story-text" v-html="session.finalStory"></div>
+            <h1 class="story-title-centered animate-title-glow">{{ session.title }}</h1>
           </div>
         </div>
       </div>
@@ -717,5 +709,33 @@ onUnmounted(() => {
 
 .animate-story-reveal {
   animation: storyReveal 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.reveal-header-centered {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 5rem 2rem;
+}
+
+.story-title-centered {
+  font-size: 3.5rem;
+  margin-top: 1.5rem;
+  font-family: var(--font-title);
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 0 30px rgba(168, 85, 247, 0.5);
+  line-height: 1.3;
+}
+
+@keyframes titleGlow {
+  from { text-shadow: 0 0 20px rgba(168, 85, 247, 0.4); }
+  to { text-shadow: 0 0 40px rgba(168, 85, 247, 0.7); }
+}
+
+.animate-title-glow {
+  animation: storyReveal 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards, titleGlow 2s infinite alternate ease-in-out;
 }
 </style>

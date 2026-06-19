@@ -108,7 +108,7 @@
                 <span class="slot-category">{{ blank.category || 'Word' }}</span>
                 <span class="slot-status">
                   <span v-if="session.currentQueueIndex === index" class="status-typing">{{ t('hostTyping') }}</span>
-                  <span v-else-if="blank.isAnswered" class="status-filled">{{ t('filledStatus') }}</span>
+                  <span v-else-if="blank.isAnswered" class="status-filled">{{ t('filledStatus') + " " + blank.answer }}</span>
                   <span v-else-if="blank.isRevealed" class="status-pending">{{ t('waitingStatus') }}</span>
                   <span v-else class="status-locked">{{ t('lockedStatus') }}</span>
                 </span>

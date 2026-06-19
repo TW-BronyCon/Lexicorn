@@ -30,12 +30,28 @@
         <div class="form-group">
           <div class="label-with-help">
             <label class="form-label" for="rawText">{{ t('templateContentLabel') }}</label>
-            <span class="help-trigger" @click="showSyntaxHelp = !showSyntaxHelp">
-              <svg class="help-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-              </svg>
-              Formatting Help
-            </span>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+              <span class="help-trigger" @click="triggerFileUpload">
+                <svg class="help-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+                {{ t('uploadFileBtn') }}
+              </span>
+              <span class="help-trigger" @click="showSyntaxHelp = !showSyntaxHelp">
+                <svg class="help-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                Formatting Help
+              </span>
+            </div>
+            <!-- Hidden File Input -->
+            <input 
+              type="file" 
+              ref="fileInput" 
+              style="display: none" 
+              accept=".md,.txt" 
+              @change="handleFileUpload"
+            />
           </div>
 
           <div v-if="showSyntaxHelp" class="syntax-help-box">
@@ -54,6 +70,7 @@
             class="form-input form-textarea"
             required
             @input="onTextChange"
+            @blur="onTextBlur"
           ></textarea>
         </div>
 
@@ -129,6 +146,133 @@ const template = ref({
 })
 const blanksConfig = ref({})
 const detectedPlaceholders = ref([])
+
+const fileInput = ref(null)
+
+const triggerFileUpload = () => {
+  fileInput.value?.click()
+}
+
+const autoIncrementPlaceholders = (rawText) => {
+  const regex = /【([^】]+)】|\[([^\]]+)\]/g
+  const matches = []
+
+  let match
+  while ((match = regex.exec(rawText)) !== null) {
+    const text = match[0]
+    const name = (match[1] || match[2] || '').trim()
+    const bracketType = text.startsWith('【') ? '【】' : '[]'
+    
+    // Parse name
+    const refRegex = /\s*\((Reference|Ref|reference|ref)(?:\s+(\d+))?\)$/i
+    const refMatch = name.match(refRegex)
+    const isRef = !!refMatch
+    const refSuffix = refMatch ? refMatch[0] : ''
+    const refNum = refMatch && refMatch[2] ? parseInt(refMatch[2], 10) : null
+
+    const cleanName = isRef ? name.slice(0, name.length - refSuffix.length).trim() : name.trim()
+
+    const numRegex = /\s+(\d+)$/
+    const numMatch = cleanName.match(numRegex)
+    const baseName = numMatch ? cleanName.slice(0, cleanName.length - numMatch[0].length).trim() : cleanName
+    const numSuffix = numMatch ? parseInt(numMatch[1], 10) : null
+
+    matches.push({
+      start: match.index,
+      end: regex.lastIndex,
+      text,
+      bracketType,
+      name,
+      isRef,
+      refNum,
+      cleanName,
+      baseName,
+      numSuffix
+    })
+  }
+
+  // Count non-reference occurrences for each baseName
+  const nonRefCounts = {}
+  matches.forEach(m => {
+    if (!m.isRef) {
+      nonRefCounts[m.baseName] = (nonRefCounts[m.baseName] || 0) + 1
+    }
+  })
+
+  // Assign new names
+  const nonRefIndices = {}
+  const newNames = matches.map(m => {
+    const totalNonRefs = nonRefCounts[m.baseName] || 0
+    if (totalNonRefs <= 1) {
+      return m.name
+    }
+
+    if (!m.isRef) {
+      nonRefIndices[m.baseName] = (nonRefIndices[m.baseName] || 0) + 1
+      const idx = nonRefIndices[m.baseName]
+      return `${m.baseName} ${idx}`
+    } else {
+      const targetIdx = m.refNum || m.numSuffix || 1
+      return `${m.baseName} ${targetIdx} (Reference)`
+    }
+  })
+
+  // Reconstruct rawText
+  let result = ''
+  let lastIdx = 0
+  for (let i = 0; i < matches.length; i++) {
+    const m = matches[i]
+    const newName = newNames[i]
+    result += rawText.slice(lastIdx, m.start)
+    if (m.bracketType === '【】') {
+      result += `【${newName}】`
+    } else {
+      result += `[${newName}]`
+    }
+    lastIdx = m.end
+  }
+  result += rawText.slice(lastIdx)
+
+  return result
+}
+
+const handleFileUpload = (event) => {
+  const file = event.target.files?.[0]
+  if (!file) return
+
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    const text = e.target?.result
+    if (typeof text === 'string') {
+      // Auto-increment placeholders
+      const processedText = autoIncrementPlaceholders(text)
+      template.value.rawText = processedText
+      
+      // Auto-fill title if empty
+      if (!template.value.title || !template.value.title.trim()) {
+        const baseName = file.name.replace(/\.[^/.]+$/, "") // Strip extension
+        template.value.title = baseName
+      }
+      
+      // Update variables list
+      onTextChange()
+    }
+  }
+  reader.readAsText(file)
+  
+  // Clear input value so same file can be uploaded again
+  event.target.value = ''
+}
+
+const onTextBlur = () => {
+  if (template.value.rawText) {
+    const formatted = autoIncrementPlaceholders(template.value.rawText)
+    if (formatted !== template.value.rawText) {
+      template.value.rawText = formatted
+      onTextChange()
+    }
+  }
+}
 
 // Helper to strip suffix for linking
 const getCanonicalName = (name) => {

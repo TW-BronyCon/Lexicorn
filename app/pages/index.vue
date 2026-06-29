@@ -88,6 +88,10 @@ const sessionCode = ref('')
 const errorMsg = ref('')
 const router = useRouter()
 
+useHead({
+  title: () => `${t('logo')} - Taiwan BronyCon Interactive Story Game`
+})
+
 const handleJoin = () => {
   errorMsg.value = ''
   const code = sessionCode.value.trim().toUpperCase()

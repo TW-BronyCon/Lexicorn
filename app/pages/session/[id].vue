@@ -142,6 +142,14 @@ const errorMsg = ref('')
 const hostUrl = ref('')
 const isHost = ref(false)
 
+useHead({
+  title: () => {
+    const sessionTitle = session.value?.title || ''
+    const sessionId = route.params.id || ''
+    return `Session ${sessionId.toUpperCase()}${sessionTitle ? `: ${sessionTitle}` : ''} - ${t('logo')}`
+  }
+})
+
 let pollInterval = null
 
 const percentComplete = computed(() => {

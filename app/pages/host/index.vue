@@ -136,6 +136,10 @@ const killingId = ref(null)
 const killingExpired = ref(false)
 const router = useRouter()
 
+useHead({
+  title: () => `${t('hostPanelTitle')} - ${t('logo')}`
+})
+
 const EXPIRY_MS = 24 * 60 * 60 * 1000 // 24 hours
 
 // Fetch templates list

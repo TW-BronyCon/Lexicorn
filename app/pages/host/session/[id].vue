@@ -202,6 +202,14 @@ const { locale, t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 
+useHead({
+  title: () => {
+    const sessionTitle = session.value?.title || ''
+    const sessionId = route.params.id || ''
+    return `Host Session ${sessionId.toUpperCase()}${sessionTitle ? `: ${sessionTitle}` : ''} - ${t('logo')}`
+  }
+})
+
 const loading = ref(true)
 const session = ref(null)
 const hostToken = ref('')

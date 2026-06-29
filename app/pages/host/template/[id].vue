@@ -136,6 +136,16 @@ const route = useRoute()
 const router = useRouter()
 const isNew = computed(() => route.params.id === 'new')
 
+useHead({
+  title: () => {
+    if (isNew.value) {
+      return `${t('newTemplateTitle')} - ${t('logo')}`
+    }
+    const templateTitle = template.value?.title || ''
+    return `${t('editTemplateTitle')}${templateTitle ? `: ${templateTitle}` : ''} - ${t('logo')}`
+  }
+})
+
 const loading = ref(false)
 const saving = ref(false)
 const showSyntaxHelp = ref(false)

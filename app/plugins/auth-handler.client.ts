@@ -10,7 +10,23 @@ export default defineNuxtPlugin((nuxtApp) => {
             if (context.response?.status === 401) {
               const url = window.location.pathname
               if (url.startsWith('/host')) {
-                // Force reload the current host page to trigger Cloudflare Access login redirect
+                // Prevent infinite reload loops.
+                // If we reloaded in the last 15 seconds, don't reload again.
+                const lastReload = sessionStorage.getItem('last_auth_reload')
+                const now = Date.now()
+                if (lastReload && now - parseInt(lastReload, 10) < 15000) {
+                  console.error('Authentication reload loop prevented. The page returned 401 twice within 15 seconds.')
+                  
+                  // Clear the reload timestamp so if they manually refresh or try later, it can try again
+                  sessionStorage.removeItem('last_auth_reload')
+                  
+                  if (opts?.onResponseError) {
+                    opts.onResponseError(context)
+                  }
+                  return
+                }
+                
+                sessionStorage.setItem('last_auth_reload', now.toString())
                 window.location.reload()
                 return
               }

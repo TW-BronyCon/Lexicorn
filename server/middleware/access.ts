@@ -18,8 +18,13 @@ export default defineEventHandler((event) => {
     const accessJwt = getHeader(event, 'cf-access-jwt-assertion')
     const accessEmail = getHeader(event, 'cf-access-user-email')
 
-    // If these headers are missing, it indicates the request bypassed Cloudflare Zero Trust
-    if (!accessJwt && !accessEmail) {
+    // Check if the CF_Authorization cookie exists as a fallback.
+    // If the API endpoints are not explicitly protected by Access in Zero Trust (but the /host page is),
+    // the browser will still send the CF_Authorization cookie with the AJAX requests.
+    const cookies = parseCookies(event)
+    const hasAccessCookie = !!cookies['CF_Authorization']
+
+    if (!accessJwt && !accessEmail && !hasAccessCookie) {
       throw createError({
         statusCode: 401,
         statusMessage: 'Unauthorized: This section of the application is protected behind Cloudflare Access.',

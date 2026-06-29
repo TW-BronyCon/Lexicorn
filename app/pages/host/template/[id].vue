@@ -137,14 +137,28 @@ const router = useRouter()
 const isNew = computed(() => route.params.id === 'new')
 
 useHead({
-  title: () => {
+  title: computed(() => {
     if (isNew.value) {
       return `${t('newTemplateTitle')} - ${t('logo')}`
     }
     const templateTitle = template.value?.title || ''
     return `${t('editTemplateTitle')}${templateTitle ? `: ${templateTitle}` : ''} - ${t('logo')}`
-  }
+  })
 })
+
+const handle401 = () => {
+  if (process.client) {
+    const lastReload = sessionStorage.getItem('last_auth_reload')
+    const now = Date.now()
+    if (lastReload && now - parseInt(lastReload, 10) < 15000) {
+      console.error('Authentication reload loop prevented. The API returned 401 twice within 15 seconds.')
+      sessionStorage.removeItem('last_auth_reload')
+      return
+    }
+    sessionStorage.setItem('last_auth_reload', now.toString())
+    window.location.reload()
+  }
+}
 
 const loading = ref(false)
 const saving = ref(false)
@@ -347,6 +361,10 @@ const fetchTemplate = async () => {
     blanksConfig.value = { ...data.blanksConfig }
     onTextChange()
   } catch (err) {
+    if (err.statusCode === 401) {
+      handle401()
+      return
+    }
     alert('Failed to load template: ' + (err.data?.message || err.message))
     router.push('/host')
   } finally {
@@ -377,6 +395,10 @@ const saveTemplate = async () => {
     
     router.push('/host')
   } catch (err) {
+    if (err.statusCode === 401) {
+      handle401()
+      return
+    }
     alert('Failed to save template: ' + (err.data?.message || err.message))
   } finally {
     saving.value = false

@@ -203,12 +203,26 @@ const route = useRoute()
 const router = useRouter()
 
 useHead({
-  title: () => {
+  title: computed(() => {
     const sessionTitle = session.value?.title || ''
     const sessionId = route.params.id || ''
     return `Host Session ${sessionId.toUpperCase()}${sessionTitle ? `: ${sessionTitle}` : ''} - ${t('logo')}`
-  }
+  })
 })
+
+const handle401 = () => {
+  if (process.client) {
+    const lastReload = sessionStorage.getItem('last_auth_reload')
+    const now = Date.now()
+    if (lastReload && now - parseInt(lastReload, 10) < 15000) {
+      console.error('Authentication reload loop prevented. The API returned 401 twice within 15 seconds.')
+      sessionStorage.removeItem('last_auth_reload')
+      return
+    }
+    sessionStorage.setItem('last_auth_reload', now.toString())
+    window.location.reload()
+  }
+}
 
 const loading = ref(true)
 const session = ref(null)
@@ -516,6 +530,10 @@ const replaySession = async () => {
     
     router.push(`/host/session/${data.sessionId}`)
   } catch (err) {
+    if (err.statusCode === 401) {
+      handle401()
+      return
+    }
     alert('Failed to start new session: ' + (err.data?.message || err.message))
     router.push('/host')
   }
@@ -541,6 +559,10 @@ onMounted(async () => {
     session.value = data
     updateInputValue(false)
   } catch (err) {
+    if (err.statusCode === 401) {
+      handle401()
+      return
+    }
     authError.value = err.data?.message || err.message || 'Failed to authenticate host access.'
   } finally {
     loading.value = false

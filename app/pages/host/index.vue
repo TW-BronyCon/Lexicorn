@@ -137,19 +137,40 @@ const killingExpired = ref(false)
 const router = useRouter()
 
 useHead({
-  title: () => `${t('hostPanelTitle')} - ${t('logo')}`
+  title: computed(() => `${t('hostPanelTitle')} - ${t('logo')}`)
 })
+
+const handle401 = () => {
+  if (process.client) {
+    const lastReload = sessionStorage.getItem('last_auth_reload')
+    const now = Date.now()
+    if (lastReload && now - parseInt(lastReload, 10) < 15000) {
+      console.error('Authentication reload loop prevented. The API returned 401 twice within 15 seconds.')
+      sessionStorage.removeItem('last_auth_reload')
+      return
+    }
+    sessionStorage.setItem('last_auth_reload', now.toString())
+    window.location.reload()
+  }
+}
 
 const EXPIRY_MS = 24 * 60 * 60 * 1000 // 24 hours
 
 // Fetch templates list
-const { data: templates, pending, refresh } = await useFetch('/api/templates', {
+const { data: templates, pending, refresh, error: templatesError } = await useFetch('/api/templates', {
   server: false
 })
 
 // Fetch sessions list
-const { data: sessions, pending: sessionsPending, refresh: refreshSessions } = await useFetch('/api/sessions', {
+const { data: sessions, pending: sessionsPending, refresh: refreshSessions, error: sessionsError } = await useFetch('/api/sessions', {
   server: false
+})
+
+watch([templatesError, sessionsError], ([tempErr, sessErr]) => {
+  const code = tempErr?.statusCode || sessErr?.statusCode
+  if (code === 401) {
+    handle401()
+  }
 })
 
 const formatDate = (isoString) => {
@@ -195,6 +216,10 @@ const startSession = async (templateId) => {
     // Redirect to Host Session panel
     router.push(`/host/session/${data.sessionId}`)
   } catch (err) {
+    if (err.statusCode === 401) {
+      handle401()
+      return
+    }
     alert('Failed to start session: ' + (err.data?.message || err.message))
   } finally {
     startingId.value = null
@@ -214,6 +239,10 @@ const confirmDelete = async (template) => {
     })
     await refresh()
   } catch (err) {
+    if (err.statusCode === 401) {
+      handle401()
+      return
+    }
     alert('Failed to delete template: ' + (err.data?.message || err.message))
   } finally {
     deletingId.value = null
@@ -226,7 +255,11 @@ const killSession = async (sessionId) => {
   killingId.value = sessionId
   try {
     await $fetch(`/api/sessions/${sessionId}/force`, { method: 'DELETE' })
-  } catch {
+  } catch (err) {
+    if (err.statusCode === 401) {
+      handle401()
+      return
+    }
     // Session may already be gone — that's fine
   } finally {
     killingId.value = null
@@ -246,6 +279,10 @@ const killExpiredSessions = async () => {
     }
     await refreshSessions()
   } catch (err) {
+    if (err.statusCode === 401) {
+      handle401()
+      return
+    }
     alert('Failed to kill expired sessions: ' + (err.data?.message || err.message))
   } finally {
     killingExpired.value = false

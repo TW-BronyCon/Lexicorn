@@ -8,7 +8,7 @@
           <NuxtLink to="/host" class="nav-link" active-class="active" external>{{ t('hostPanel') }}</NuxtLink>
         </nav>
         <div class="lang-selector-wrapper">
-          <select :value="locale" @change="e => setLocale(e.target.value)" class="lang-select">
+          <select v-model="currentLocale" class="lang-select">
             <option value="en">English</option>
             <option value="zh-TW">繁體中文</option>
             <option value="zh-CN">简体中文</option>
@@ -23,7 +23,14 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
+
 const { locale, setLocale, t } = useI18n()
+
+const currentLocale = computed({
+  get: () => locale.value,
+  set: (val) => setLocale(val)
+})
 </script>
 
 <style scoped>

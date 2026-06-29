@@ -74,7 +74,7 @@
       <div class="glass-card host-cta">
         <h2>{{ t('hostTitle') }}</h2>
         <p>{{ t('hostDesc') }}</p>
-        <NuxtLink to="/host" class="btn btn-secondary w-full">
+        <NuxtLink to="/host" class="btn btn-secondary w-full" external>
           {{ t('hostButton') }}
         </NuxtLink>
       </div>

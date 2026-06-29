@@ -5,7 +5,7 @@
       <div style="display: flex; align-items: center; gap: 1.5rem;">
         <nav style="display: flex; gap: 1rem;">
           <NuxtLink to="/" class="nav-link" exact-active-class="active">{{ t('home') }}</NuxtLink>
-          <NuxtLink to="/host" class="nav-link" active-class="active">{{ t('hostPanel') }}</NuxtLink>
+          <NuxtLink to="/host" class="nav-link" active-class="active" external>{{ t('hostPanel') }}</NuxtLink>
         </nav>
         <div class="lang-selector-wrapper">
           <select :value="locale" @change="e => setLocale(e.target.value)" class="lang-select">

@@ -77,6 +77,19 @@ This app is deployed as a full-stack **Cloudflare Pages** project.
    npx wrangler pages deploy dist
    ```
 
+## Dependency updates
+
+Renovate checks monthly and automerges stable (`>=1.0.0`) minor and patch
+updates after passing checks, including the Cloudflare Pages build.
+Major and pre-1.0 updates require manual merging. TypeScript remains capped
+at `<7.0.0`.
+
+Renovate performs PR merges itself (`platformAutomerge: false`), so GitHub's
+**Allow auto-merge** setting is not required. Passing checks are still required;
+do not enable `ignoreTests`.
+
+See [Renovate's automerge guide](https://docs.renovatebot.com/key-concepts/automerge/).
+
 ## Contributors
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for commit and branch guidelines.

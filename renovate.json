@@ -8,7 +8,7 @@
   "prHourlyLimit": 0,
   "automergeType": "pr",
   "automergeStrategy": "merge-commit",
-  "platformAutomerge": false,
+  "platformAutomerge": true,
   "packageRules": [
     {
       "description": "Automerge stable non-major updates after passing checks",

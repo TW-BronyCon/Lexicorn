@@ -84,9 +84,8 @@ updates after passing checks, including the Cloudflare Pages build.
 Major and pre-1.0 updates require manual merging. TypeScript remains capped
 at `<7.0.0`.
 
-Renovate performs PR merges itself (`platformAutomerge: false`), so GitHub's
-**Allow auto-merge** setting is not required. Passing checks are still required;
-do not enable `ignoreTests`.
+GitHub performs PR auto-merges (`platformAutomerge: true`). Keep **Allow
+auto-merge** enabled and the Cloudflare Pages build required in branch rules.
 
 See [Renovate's automerge guide](https://docs.renovatebot.com/key-concepts/automerge/).
 
